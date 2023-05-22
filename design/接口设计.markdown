@@ -1,0 +1,36 @@
+# 治理项目接口设计
+
+## 后端
+
+response返回的数据统一规范形式为JSON格式
+>  {
+>  
+>    "result": string("yes" or "no")
+>    
+>    "data": map
+>    
+>    "message": string(if result is "no" should returns error)
+>    
+> }   
+
+
+    下面的response的数据代表如果result为yes,data的格式为
+
++ /user
+
+ |method|context|params|result|
+ |--|--|--|--|
+ |POST|/login|username,password||
+
+
++ /share
+
+  |method|context|params|result|
+  |POST|/create|share(rsa encrypt),username,EOA alias||
+  |POST|/get|share(rsa encrypt),username public key,username,EOA alias|secret(RSA encrypt)|
+
+
+
+## 合约
+
++ sendTransaction(sign,to,data)
