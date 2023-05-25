@@ -14,20 +14,30 @@ response返回的数据统一规范形式为JSON格式
 > }   
 
 
-    下面的response的数据代表如果result为yes,data的格式为
+    下面的response的数据代表如果result为yes,data的格式为map类型
 
 + /user
 
- |method|context|params|result|
+ |method|context|params|data|
  |--|--|--|--|
  |POST|/login|username,password||
 
 
 + /share
 
-  |method|context|params|result|
+  |method|context|params|data|
+  |--|--|--|--|
   |POST|/create|share(rsa encrypt),username,EOA alias||
-  |POST|/get|share(rsa encrypt),username public key,username,EOA alias|secret(RSA encrypt)|
+  |POST|/get|user public key,username,EOA alias|secret(RSA encrypt)|
+
+
++ /serverpk
+
+  |method|context|params|data|
+  |--|--|--|--|
+  |Get|/get||serverpk|
+
+
 
 
 

@@ -9,13 +9,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@baiducloud/sdk": "^1.0.0-rc.38",
     "@tailwindcss/forms": "^0.3.4",
     "antd": "^5.5.0",
     "autoprefixer": "^10.4.0",
     "axios": "^1.4.0",
+    "bn.js": "^5.2.1",
+    "buffer": "^6.0.3",
     "eth-revert-reason": "^1.0.3",
-    "ethers": "^5.5.1",
+    "ethers": "^5.7.2",
+    "forge": "^2.3.0",
     "framer-motion": "^5.3.1",
+    "node-rsa": "^1.1.1",
     "postcss": "^8.3.11",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
@@ -29,6 +34,7 @@
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-react": "^7.27.1",
     "eslint-plugin-react-hooks": "^4.3.0",
+    "http-proxy-middleware": "^2.0.6",
     "tailwindcss": "^2.2.19",
     "vite": "^2.6.4"
   }

@@ -1,83 +1,86 @@
-import React,{ useState,useContext,useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import {Modal,Button, Checkbox, Form, Input,Alert} from "antd";
+import React,{ useState,useEffect } from 'react'
+import {Modal} from "antd";
 import './App.css'
-import { Navbar,Welcome,Footer,Services,Transactions } from './components'
+import { Navbar,Welcome,Footer,Services,Transactions,Login,Register} from './components'
 import axios from "axios";
-export  const LoginModal =React.createContext();
-//the backend url
-const baseURL="";
-const App=()=>{
-  const BackendURL=React.createContext(baseURL);
-  const [alertView,setAlertView]=useState(false);
-  const [loginView,setLoginView]=useState(false);
-  // the alertInfo is obj,including the attribute is type and info
-  let alertInfo = null
-  const [userInfo,setUserInfo]=useState(null);
-  const loginUser=async ()=>{
-    await axios.post(baseURL+"/user/login",userInfo).then((response)=>{
-      let data =response.data
-      if (data.result!="yes"){
-        alertInfo={title:"warning",content:data.message};
-        setAlertView(true);
-           return;
-      }
-     }).catch((error)=>{
-        alertInfo={title:"error",content:"系统正在开小差"};
-        setAlertView(true);
-        return;
-     })
+import {generateRSAKeyPair,encryptWithRSA,decryptWithRSA} from "./utils/RSAUtil";
+const config = {
+  endpoint: "https://bj.bcebos.com",         //传入Bucket所在区域域名
+  credentials: {
+      ak: "ALTAKN6Qw7M8cTDLSl5GYc94f6",         //您的AccessKey
+      sk: "55daa3fb37d84ada9fc22d34e734762c"       //您的SecretAccessKey
   }
+};
+export const BosConfig=React.createContext();
+  //the backend url
+  let baseURL="http://112.124.53.234:8399/did";
+  //the server public key
+let serverPK = "";
+export   const BackendURL=React.createContext(baseURL);
+export const ServerPK=React.createContext(serverPK);
+// ------------component------------------
+const App=()=>{
+  function init(){
+    //初始化服务器公钥
+    axios.get(baseURL+"/getPK").then((response)=>{
+      let data=response.data;
+      if (data.result!=true){
+        Modal.error({title:"error",content:data.message});
+        return;
+      }
+      serverPK=data.data;
+    })
+  }
+  init();
+  const [registerView,setRegisterView]=useState(false);
+  const [EOAInfo,setEOAInfo] = useState({privateKey:"",wallet:null});
+  const [loginView,setLoginView]=useState(false);
+  const [userInfo,setUserInfo]=useState({username:"",password:"",publicKey:"",privatekey:"",address:"",secretFragment:""});
+  const [isLogin,setIsLogin]=useState(false);
+  useEffect(()=>{
+    if(loginView){
+// 生成 2048 位的 RSA 密钥对
+async function createRSA(){
+  const keyPair=generateRSAKeyPair();
+  let privateKey=await window.crypto.subtle.exportKey("pkcs8",  (await keyPair).privateKey)
+  let publicKey=await window.crypto.subtle.exportKey("spki", (await keyPair).publicKey)
+  
+      setUserInfo((pre)=>({...pre,privateKey:pemFromBinary(privateKey, 'PRIVATE KEY'),publicKey:pemFromBinary(publicKey, 'PUBLIC KEY')}));
+    }
+   createRSA();
+   return null; 
+  }
+  },[loginView])
+  useEffect(()=>{
+     if (registerView&&(loginView|registerView)){
+         setLoginView(false);
+     }
+  },[registerView])
+  // 将导出的二进制数据转换为 PEM 格式
+function pemFromBinary(binaryData, label) {
+  const base64Data = btoa(String.fromCharCode(...new Uint8Array(binaryData)));
+  const base64Pem = base64Data.replace(/(.{64})/g, '$1\n');
+  return `-----BEGIN ${label}-----\n${base64Pem}-----END ${label}-----\n`;
+}
+
   return (
-    <LoginModal.Provider value={setLoginView}>
    <div className='min-h-screen'>
+       <BosConfig.Provider value={{config:config,bucket:"did-blockchain"}}>
+        <BackendURL.Provider>
+        <ServerPK.Provider>
     <div className='gradient-bg-welcome'>
       <Navbar />
-      <Welcome />
+      <Welcome isLogin={isLogin} userModalView={setLoginView} userModal={loginView} EOAInfo={EOAInfo} setEOAInfo={setEOAInfo} globalUser={userInfo}  />
     </div>
     <Services />
     <Transactions />
     <Footer />
-    {alertView?Modal.error(alertInfo):<></>}
-    {loginView?<Modal title="Login"  onCancel={()=>{setLoginView(false)}}  open={loginView} footer={null}>
-    <Form
-    name="basic"
-    labelCol={{ span: 8 }}
-    wrapperCol={{ span: 16 }}
-    style={{ maxWidth: 600 }}
-    initialValues={{ remember: true }}
-    autoComplete="off"
-  >
-    <Form.Item
-      label="Username"
-      name="username"
-      rules={[{ required: true, message: 'Please input your username!' }]}
-    >
-      <Input value={(input)=>{setUserInfo((preUser)=>({...preUser,username:input}))}}/>
-    </Form.Item>
-
-    <Form.Item
-      label="Password"
-      name="password"
-      rules={[{ required: true, message: 'Please input your password!' }]}
-    >
-      <Input.Password value={(input)=>{setUserInfo((preUser)=>({...preUser,password:input}))}}/>
-    </Form.Item>
-
-    <Form.Item name="remember" valuePropName="checked" wrapperCol={{ offset: 8, span: 16 }}>
-      <Checkbox>Remember me</Checkbox>
-    </Form.Item>
-
-    <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-      <Button type="primary" htmlType="submit" onClick={loginUser}>
-        登录
-      </Button>
-    </Form.Item>
-  </Form>
-    </Modal>:<></>} 
+    {loginView?<Login setEOAInfo={setEOAInfo} EOAInfo={EOAInfo}  loginView={loginView} setIsLogin={setIsLogin} setLoginView={setLoginView} userInfo={userInfo} setUserInfo={setUserInfo} setRegisterView={setRegisterView}></Login>:<></>} 
+    {registerView?<Register setEOAInfo={setEOAInfo} EOAInfo={EOAInfo} registerView={registerView} setRegisterView={setRegisterView} userInfo={userInfo} setUserInfo={setUserInfo} setIsLogin={setIsLogin}></Register>:<></>}
+    </ServerPK.Provider>
+    </BackendURL.Provider>
+    </BosConfig.Provider>
    </div>
-      </LoginModal.Provider> 
   )
 }
 
