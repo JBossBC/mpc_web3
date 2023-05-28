@@ -1,5 +1,6 @@
 
 import React from "react";
+import {GithubOutlined} from "@ant-design/icons";
 import logo from "../images/logo.png"
 
 const Footer=()=>(
@@ -23,7 +24,9 @@ const Footer=()=>(
         </div>
         <div className="sm:w-[90%] w-full h-[0.25px] bg-gray-400 mt-5" />
         <div className="sm:w-[90%] w-full flex justify-between items-center mt-3">
-            <p className="text-white text-left text-xs">@Krypto</p>
+            <a href="https://github.com/JBossBC">
+            <GithubOutlined color="white"/>
+            </a> 
             <p className="text-white text-right text-xs">All rights reserved</p>
         </div>
     </div>

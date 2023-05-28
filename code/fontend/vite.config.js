@@ -3,20 +3,18 @@ import react from '@vitejs/plugin-react'
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default {
   server: {
     proxy: {
-      '/api': {
+      '/v1': {
         target: 'https://bj.bcebos.com',
         changeOrigin: true,
-        pathRewrite: {
-          '^/api': '/v1/did-blockchain'
-        },
+        secure: false,
         headers: {
-          Referer: 'https://bj.bcebos.com'
-        }
-      }
-    }
+          Referer: 'https://bj.bcebos.com',
+        },
+      },
+    },
   },
-})
+  plugins: [react()],
+}

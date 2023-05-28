@@ -1,7 +1,7 @@
 import React,{ useContext, useEffect, useState } from 'react'
 import {Modal,Form,Checkbox,Button,Input} from "antd"
 import axios from 'axios'
-import {BackendURL}  from "../App";
+import {BackendURL, BosConfig}  from "../App";
 import {ForgetView} from "./";
 import { decryptMPC } from '../utils/mpcUtil';
 
@@ -17,14 +17,12 @@ const Login=(props)=>{
             form.setFieldsValue(userInfo);
         }
     },[loginView])
-    function findSecret(){
 
-    }
     const loginUser=async ()=>{
       let end=false;
       let [userPk,serverPk]=[userInfo.secretFragment,""]
       //login
-        await axios.post(baseURL+"/login",userInfo).then((response)=>{
+        await axios.post(baseURL+"/login",{username:userInfo.username,password:username.password}).then((response)=>{
           let data =response.data;
           if (data.result!=true){
             Modal.error({title:"error",content:data.message});
@@ -66,16 +64,17 @@ const Login=(props)=>{
           return;
          }
          //获得私钥
-         let privateKey=decryptMPC([userPk,serverPk],2n**512n);
+         let privateKey=decryptMPC([userPk,serverPk]);
          setEOAInfo((pre)=({...pre,privatekey:privateKey,wallet:new ethers.Wallet(privateKey)}))
          setLoginView(false); 
          setIsLogin(true);
       }
     return(
         <>
+        <BosConfig.Provider>
         <Modal title="登录"  onCancel={()=>{setLoginView(false)}}  open={loginView} footer={null}>
     <Form form={form}
-    name="basic"
+    name="login"
     labelCol={{ span: 8 }}
     wrapperCol={{ span: 16 }}
     style={{ maxWidth: 600 }}
@@ -133,7 +132,7 @@ const Login=(props)=>{
         </Form.Item>
 
         <a className="login-form-forgot float-right underline"  onClick={setForgetSecretView}>
-          忘记密码?
+          恢复密钥?
         </a>
       </Form.Item>
       <Form.Item
@@ -152,6 +151,7 @@ const Login=(props)=>{
   </Form>
     </Modal>
     {forgetSecretView&&(<ForgetView setEOAInfo={setEOAInfo} EOAInfo={EOAInfo} setUserInfo={setUserInfo} userInfo={userInfo} forgetSecretView={forgetSecretView}  setForgetSecretView={setForgetSecretView}></ForgetView>)}
+    </BosConfig.Provider>
     </>
     )
 }

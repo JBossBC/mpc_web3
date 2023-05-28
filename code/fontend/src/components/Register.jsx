@@ -2,17 +2,25 @@ import { BosClient } from "@baiducloud/sdk";
 import {ethers} from "ethers";
 import {Modal,Form,Input,Button} from "antd"
 import { useContext, useState } from "react";
-import {BosConfig} from "../App"
+import {BackendURL, BosConfig} from "../App"
 import { decryptMPC, encryptMPC } from "../utils/mpcUtil";
+import { encryptWithRSA } from "../utils/RSAUtil";
+import axios from "axios";
 const Register=(props)=>{
-   const config= useContext(BosConfig)
-   const [newUserInfo,setNewUserInfo]=useState({username:"",password:""}) 
-   const {EOAInfo,setEOAInfo,registerView,setRegisterView,userInfo,setUserInfo,setIsLogin} =props 
+   const config= useContext(BosConfig);
+   const backendurl=useContext(BackendURL);
+   console.log(config);
+   console.log(backendurl);
+   const [newUserInfo,setNewUserInfo]=useState({username:"",password:""}) ;
+   const {serverPK,EOAInfo,setEOAInfo,registerView,setRegisterView,userInfo,setUserInfo,setIsLogin} =props 
   let bosClient = new BosClient(config.config);
   //注册用户
   async function RegisterUser(){
     //创建EOA账户
-        await createEOA(); 
+       let result= await createEOA(); 
+       if (result){
+        return "";
+       }
         //创建成功
         setRegisterView(false);
         setIsLogin(true);
@@ -24,54 +32,56 @@ const Register=(props)=>{
     const wallet=new ethers.Wallet(privateKey);
     console.log("privateKey",privateKey);
     // cut the EOA private key
-    let secret =BigInt('0x'+privateKey.slice(2));
-    console.log(secret);
-    let [userSF,serverSF,baiduSF]= encryptMPC(secret,3,2);
+    let [userSF,serverSF,baiduSF]= encryptMPC(BigInt(privateKey));
     console.log(userSF,serverSF,baiduSF);
-    console.log(decryptMPC([userSF,serverSF].slice(0,2),2n**512n).toString(16));
+    console.log(decryptMPC([userSF,serverSF].slice(0,2)).toString());
     //keep to baiduSF
-    await bosClient.putObjectFromString(config.bucket,userInfo.username+"-"+wallet.address,baiduSF).then((response)=>{
-      let data=response.data;
-      if (data.code!="success"){
-        Modal.error({title:"error",content:data.message});
-        end=true;
-        return
-      }
-    }).catch((error)=>{
-      Modal.error({title:"error",content:error})
+    //baiduSF 的值预处理
+    await bosClient.putObject(config.bucket,newUserInfo.username+"-"+wallet.address,JSON.stringify({x:baiduSF.x.toString(),y:baiduSF.y.toString()})).catch((error)=>{
+      console.log(error);
+      Modal.error({title:"error",content:"系统出错啦"});
       end=true;
-      return
     });
     if(end){
-      return;
+      return end;
     }
     // keep to server
     // 加密数据
-    var encryptData="";
 // 加密数据
-const encryptedData =encryptWithRSA(serverPK,serverSF);
-    await axios.post(BackendURL+"/create",{share:encryptedData,username:userInfo.username,alias:EOAInfo.wallet.address}).then((response)=>{
+const encryptedData =await encryptWithRSA(serverPK,JSON.stringify({x:serverSF.x.toString(),y:serverSF.y.toString()}));
+console.log(encryptedData);
+    await axios.post(backendurl+"/create",{share:encryptedData,username:newUserInfo.username,alias:wallet.address}).then((response)=>{
       let data=response.data;
       if (data.result!=true){
         Modal.error({title:"error",content:data.message});
         end=true;
-        return;
       }
      }).catch((error)=>{
-      Modal.error({title:"error",content:error});
+      Modal.error({title:"error",content:"系统出错啦"});
       end=true
      })
      if (end){
-      return;
+      return end;
      }
-     Modal.info({title:"账户创建成功",content:userSF});
+    await axios.post(backendurl+"/did/register",{username:newUserInfo.username,password:newUserInfo.password}).then((response)=>{
+      let data=response.data;
+      if (data.result!=true){
+        Modal.error({title:"error",content:"创建账户失败"});
+        end=true;
+      }
+    })
+    if(end){
+      return end;
+    } 
+     Modal.success({title:"账户创建成功",content:"请保存你的密钥片段: "+userSF});
      setEOAInfo({...EOAInfo,privatekey:ethers.Wallet.createRandom(privateKey).privateKey,wallet:wallet});
      setUserInfo({...userInfo,username:newUserInfo.username,password:newUserInfo.password})
+     return end;
   }
     return(
         <Modal title="注册"  onCancel={()=>{setRegisterView(false)}}  open={registerView} footer={null}>
         <Form 
-        name="basic"
+        name="register"
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
         style={{ maxWidth: 600 }}
@@ -97,7 +107,7 @@ const encryptedData =encryptWithRSA(serverPK,serverSF);
                 offset: 8,
                 span: 16,
               }}>
-            <Button className='w-full' type="primary" htmlType="submit" onClick={RegisterUser} >
+            <Button className='w-full' type="primary" htmlType="submit" onClick={async()=>{await RegisterUser()}} >
               注册
             </Button>
           </Form.Item>

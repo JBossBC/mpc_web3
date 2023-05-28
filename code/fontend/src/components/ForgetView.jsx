@@ -44,7 +44,7 @@ const ForgetView=(props)=>{
           return;
         }
 
-        const privateKey=decryptMPC([serverPk,baiduPk],2n*8512n);
+        const privateKey=decryptMPC([serverPk,baiduPk]);
         Modal.success({title:"成功",content:"自动登录中....."});
         //状态保存
         setEOAInfo((pre)=({...pre,privatekey:privateKey,wallet:new ethers.Wallet(privateKey)}))
@@ -53,7 +53,7 @@ const ForgetView=(props)=>{
     }
     return(  <Modal title="找回密钥"  onCancel={()=>{setForgetSecretView(false)}}  open={forgetSecretView} footer={null}>
     <Form 
-    name="basic"
+    name="forgetview"
     labelCol={{ span: 8 }}
     wrapperCol={{ span: 16 }}
     style={{ maxWidth: 600 }}
