@@ -16,13 +16,19 @@ export const generateRSAKeyPair=async ()=> {
   
   // 使用公钥加密数据
   export const encryptWithRSA=async (publicKey, data)=> {
+    const buffer = JSON.stringify(data);
+const base64 = btoa(buffer);
     let result;
+    const algorithm = {
+      name: 'RSA-OAEP',
+      hash: 'SHA-256'
+    };
    await crypto.subtle.encrypt(
-      { name: 'RSA-OAEP' },
+      algorithm,
       publicKey,
-      new TextEncoder().encode(data)
+      new TextEncoder().encode(base64)
     ).then(data=>{
-      result=btoa(data);
+      result=data;
     });
     return result;
   }

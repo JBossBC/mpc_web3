@@ -1,17 +1,34 @@
 import React,{ useContext, useEffect, useState } from 'react'
-import {Modal,Form,Checkbox,Button,Input} from "antd"
+import {Modal,Form,Checkbox,Button,Input,Row,Col} from "antd"
 import axios from 'axios'
 import {BackendURL, BosConfig}  from "../App";
 import {ForgetView} from "./";
 import { decryptMPC } from '../utils/mpcUtil';
-
+import {generateRandomString} from "../utils/random";
 //-------------components-----------------
 const Login=(props)=>{
     const baseURL=useContext(BackendURL);
+    const [captchaData,setCaptchaData]=useState(null)
     const {loginView,setLoginView,userInfo,setUserInfo,setIsLogin,setRegisterView,setEOAInfo,EOAInfo} =props
     const [remenberUserInfo,setRemenberUserInfo]=useState(true);
     const [forgetSecretView,setForgetSecretView]=useState(false);
     const [form] =Form.useForm();
+    function freshData() {
+      setUserInfo((pre)=>({...pre,key:generateRandomString(Math.random()*15)}))
+       axios.get(baseURL+"/getCode?key="+userInfo.key).then(response=>{
+        let data=response.data
+        if (!data.result){
+          Modal.error({title:"error",content:data.message});
+          return;
+        }
+        setCaptchaData(data.data);
+       }).catch(error=>{
+        Modal.error({title:"error",content:"系统出错勒"})
+       })
+     }
+     useEffect(()=>{
+      freshData()
+     },[])
     useEffect(()=>{
         if(loginView){
             form.setFieldsValue(userInfo);
@@ -104,6 +121,26 @@ const Login=(props)=>{
     >
       <Input.Password value={userInfo.secretFragment} onChange={(input)=>{console.log(userInfo.secretFragment);setUserInfo((preUser)=>({...preUser,secretFragment:input.target.value}))}}/>
     </Form.Item>
+    <Form.Item label="Captcha" extra="We must make sure that your are a human.">
+        <Row gutter={8}>
+          <Col span={12}>
+            <Form.Item
+              name="captcha"
+              noStyle
+              rules={[{ required: true, message: '请输入验证码' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+          <div>
+            <a onClick={freshData}>
+      <img src={captchaData} alt="captcha"/>
+      </a>
+    </div>
+          </Col>
+        </Row>
+      </Form.Item>
     <Form.Item
       label="publicKey"
       name="publicKey"

@@ -17,6 +17,7 @@
     "axios": "^1.4.0",
     "bn.js": "^5.2.1",
     "buffer": "^6.0.3",
+    "components": "^0.1.0",
     "eth-revert-reason": "^1.0.3",
     "ethers": "^5.7.2",
     "forge": "^2.3.0",

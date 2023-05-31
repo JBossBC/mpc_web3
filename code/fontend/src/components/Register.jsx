@@ -1,21 +1,42 @@
 import { BosClient } from "@baiducloud/sdk";
 import {ethers} from "ethers";
-import {Modal,Form,Input,Button} from "antd"
-import { useContext, useState } from "react";
+import {Modal,Form,Input,Button,Row,Col} from "antd"
+import { useContext, useEffect, useState } from "react";
 import {BackendURL, BosConfig} from "../App"
 import { decryptMPC, encryptMPC } from "../utils/mpcUtil";
 import { encryptWithRSA } from "../utils/RSAUtil";
+import {generateRandomString} from "../utils/random";
 import axios from "axios";
 const Register=(props)=>{
    const config= useContext(BosConfig);
    const backendurl=useContext(BackendURL);
-   console.log(config);
-   console.log(backendurl);
-   const [newUserInfo,setNewUserInfo]=useState({username:"",password:""}) ;
+   const [captchaData,setCaptchaData]=useState(null);
+   const [newUserInfo,setNewUserInfo]=useState({username:"",password:"",repeatPassword:"",key:""}) ;
    const {serverPK,EOAInfo,setEOAInfo,registerView,setRegisterView,userInfo,setUserInfo,setIsLogin} =props 
-  let bosClient = new BosClient(config.config);
+   let bosClient = new BosClient(config.config);
+   function freshData() {
+    setNewUserInfo((pre)=>({...pre,key:generateRandomString(Math.random()*15)}))
+     axios.get(backendurl+"/getCode?key="+newUserInfo.key).then(response=>{
+      let data=response.data
+      if (!data.result){
+        Modal.error({title:"error",content:data.message});
+        return;
+      }
+      setCaptchaData(data.data);
+     }).catch(error=>{
+      Modal.error({title:"error",content:"系统出错勒"})
+     })
+   }
+   useEffect(()=>{
+    freshData()
+   },[])
   //注册用户
   async function RegisterUser(){
+
+    if(newUserInfo.password!==newUserInfo.repeatPassword){
+      Modal.warning({title:"warning",content:"两次输入的密码不一致"})
+      return;
+    }
     //创建EOA账户
        let result= await createEOA(); 
        if (result){
@@ -48,13 +69,14 @@ const Register=(props)=>{
     // keep to server
     // 加密数据
 // 加密数据
-const encryptedData =await encryptWithRSA(serverPK,JSON.stringify({x:serverSF.x.toString(),y:serverSF.y.toString()}));
+const encryptedData =await encryptWithRSA(serverPK,{x:serverSF.x.toString(),y:serverSF.y.toString()});
 console.log(encryptedData);
     await axios.post(backendurl+"/create",{share:encryptedData,username:newUserInfo.username,alias:wallet.address}).then((response)=>{
       let data=response.data;
       if (data.result!=true){
         Modal.error({title:"error",content:data.message});
         end=true;
+        return;
       }
      }).catch((error)=>{
       Modal.error({title:"error",content:"系统出错啦"});
@@ -63,7 +85,7 @@ console.log(encryptedData);
      if (end){
       return end;
      }
-    await axios.post(backendurl+"/did/register",{username:newUserInfo.username,password:newUserInfo.password}).then((response)=>{
+    await axios.post(backendurl+"/did/register",{newUserInfo}).then((response)=>{
       let data=response.data;
       if (data.result!=true){
         Modal.error({title:"error",content:"创建账户失败"});
@@ -102,6 +124,33 @@ console.log(encryptedData);
     >
       <Input.Password value={newUserInfo.password} onChange={(input)=>{console.log(newUserInfo.password);setNewUserInfo((preUser)=>({...preUser,password:input.target.value}))}}/>
     </Form.Item>
+    <Form.Item
+      label="RepeatPassword"
+      name="repeatPassword"
+      rules={[{ required: true, message: '请重新输入密码' }]}
+    >
+      <Input.Password value={newUserInfo.repeatPassword} onChange={(input)=>{console.log(newUserInfo.repeatPassword);setNewUserInfo((preUser)=>({...preUser,repeatPassword:input.target.value}))}}/>
+    </Form.Item>
+    <Form.Item label="Captcha" extra="We must make sure that your are a human.">
+        <Row gutter={8}>
+          <Col span={12}>
+            <Form.Item
+              name="captcha"
+              noStyle
+              rules={[{ required: true, message: '请输入验证码' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+          <div>
+            <a onClick={freshData}>
+      <img src={captchaData} alt="captcha"/>
+      </a>
+    </div>
+          </Col>
+        </Row>
+      </Form.Item>
         <Form.Item
               wrapperCol={{
                 offset: 8,

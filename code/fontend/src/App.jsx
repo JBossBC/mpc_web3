@@ -23,10 +23,11 @@ const App = () => {
   const [registerView, setRegisterView] = useState(false);
   const [EOAInfo, setEOAInfo] = useState({ privateKey: "", wallet: null });
   const [loginView, setLoginView] = useState(false);
-  const [userInfo, setUserInfo] = useState({ username: "", password: "", publicKey: "", privatekey: "", address: "", secretFragment: "" });
+  const [userInfo, setUserInfo] = useState({key:"", username: "", password: "", publicKey: "", privatekey: "", address: "", secretFragment: "" });
   const [isLogin, setIsLogin] = useState(false);
   const [serverPK, setServerPK] = useState(null);
    function getServerpk() {
+    let result=false;
     //初始化服务器公钥
      axios.get(baseURL + "/getPK").then((response) => {
       let data = response.data;
@@ -37,7 +38,9 @@ const App = () => {
       const privateKeyData = Uint8Array.from(atob(data.data), c => c.charCodeAt(0));
       return privateKeyData
     }).then((privateKeyData) => {
-      console.log(privateKeyData);
+      if(!privateKeyData){
+        return;
+      }
       window.crypto.subtle.importKey(
         'spki', // 标识私钥类型
         privateKeyData, // 私钥数据
@@ -49,17 +52,20 @@ const App = () => {
         ['encrypt'] // 指定密钥用途
       ).then(privatekey=>{
         setServerPK(privatekey);
+        result=true;
       }).catch((error) => {
+        console.log(error);
         Modal.error({title:"error",content:"获取服务器公钥失败"});
       });
+      if (result){
+        setInit(true);
+      }
     })
   }
   useEffect(()=>{
-    if (!init){
-      getServerpk();
-      setInit(true);
-    }
-  },[init]);
+    getServerpk();
+    console.log(init);
+  },[])
   useEffect( async() => {
     if (loginView) {
       // 生成 2048 位的 RSA 密钥对
@@ -67,11 +73,11 @@ const App = () => {
         const keyPair = generateRSAKeyPair();
         let privateKey = await window.crypto.subtle.exportKey("pkcs8", (await keyPair).privateKey)
         let publicKey = await window.crypto.subtle.exportKey("spki", (await keyPair).publicKey)
-
         setUserInfo((pre) => ({ ...pre, privateKey: pemFromBinary(privateKey, 'PRIVATE KEY'), publicKey: pemFromBinary(publicKey, 'PUBLIC KEY') }));
       }
+      if (!init){
      await createRSA();
-      return null;
+      }
     }
   }, [loginView])
   useEffect(() => {
@@ -92,7 +98,7 @@ const App = () => {
         <BackendURL.Provider value={baseURL}>
           <div className='gradient-bg-welcome'>
             <Navbar />
-            <Welcome isLogin={isLogin} userModalView={setLoginView} userModal={loginView} EOAInfo={EOAInfo} setEOAInfo={setEOAInfo} globalUser={userInfo} />
+            <Welcome init={init} getpk={getServerpk} isLogin={isLogin} userModalView={setLoginView} userModal={loginView} EOAInfo={EOAInfo} setEOAInfo={setEOAInfo} globalUser={userInfo} />
           </div>
           <Services />
           <Transactions />

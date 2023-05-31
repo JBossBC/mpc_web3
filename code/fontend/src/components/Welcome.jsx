@@ -14,7 +14,7 @@ const Input =({placeholder,name,type,value,handlechange})=>(
     <input placeholder={placeholder} type={type} step="0.0001" value={value} onChange={(e)=>handlechange(e,name)} className="my-2 w-full rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism"  />
 )
 const Welcome=(props)=>{
-  const {userModalView,isLogin,EOAInfo,setEOAInfo,globalUser,userModal} =props;
+  const {userModalView,isLogin,init,getpk,EOAInfo,setEOAInfo,globalUser,userModal} =props;
   // const globalUser=useContext(loginInfoForUser);
   const handleSumbit=(e)=>{
     const {addressTo,amount,keyword,message}=formData;
@@ -33,7 +33,10 @@ const Welcome=(props)=>{
            <p className="text-left mt-5 text-white font-light md:w-9/12 w-11/12 text-base">
             Explore the crypto world. Buy and sell cryptocurrencies easily.
            </p>
-           {!userModal&&(
+           {!userModal&&(init||<button type="button" onClick={()=>{getpk}} className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]">
+              <AiFillPayCircle className="text-white mr-2" />
+              <p className="text-white text-base font-semibold w-32">Try to Get server public key again</p>
+            </button>)&&(
             <button type="button" onClick={()=>{userModalView(true)}} className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]">
               <AiFillPayCircle className="text-white mr-2" />
               <p className="text-white text-base font-semibold w-32"> Login</p>
