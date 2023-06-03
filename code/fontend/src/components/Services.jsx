@@ -33,12 +33,12 @@ const Services=()=>(
         </div>
         <div className="flex-1 flex flex-col justify-start items-center">
             <ServiceCard  color="bg-[#2952E3]" title="Security gurantee" icon={<BsShieldFillCheck fontSize={21} className="text-white" />} subtitle="Security is guranteed. We always maintain privacy and maintain the quality of out products" />
-            <ServiceCard color="bg-[#8945F8]" title="Best exchange rates" icon={<BiSearchAlt fontSize={21} className="text-white" />} subtitle="Security is guranteed. We always maintain privacy and maintain the quality of out products"/>
+            <ServiceCard color="bg-[#8945F8]" title="Flexible" icon={<BiSearchAlt fontSize={21} className="text-white" />} subtitle="You don't have to worry about losing your private key, you can retrieve it in another way"/>
             <ServiceCard
           color="bg-[#F84550]"
-          title="Fastest transactions"
+          title="Interacting with Uniswap"
           icon={<RiHeart2Fill fontSize={21} className="text-white" />}
-          subtitle="Security is guranteed. We always maintain privacy and maintain the quality of our products"
+          subtitle="You can directly interact with Uniswap without having to write too complex transaction logic"
         />
         </div>
     </div>

@@ -22,7 +22,6 @@ const Welcome=(props)=>{
     if(!addressTo||!amount||!keyword||!message)return;
     sendTransaction();
   }
-
   return(
     <div className="flex w-full justify-center items-center">
        <div className="flex mf:flex-row flex-col items-start justify-between md:p-20 py-12 px-4">
@@ -33,10 +32,7 @@ const Welcome=(props)=>{
            <p className="text-left mt-5 text-white font-light md:w-9/12 w-11/12 text-base">
             Explore the crypto world. Buy and sell cryptocurrencies easily.
            </p>
-           {!userModal&&(init||<button type="button" onClick={()=>{getpk}} className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]">
-              <AiFillPayCircle className="text-white mr-2" />
-              <p className="text-white text-base font-semibold w-32">Try to Get server public key again</p>
-            </button>)&&(
+           {!isLogin&&(
             <button type="button" onClick={()=>{userModalView(true)}} className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]">
               <AiFillPayCircle className="text-white mr-2" />
               <p className="text-white text-base font-semibold w-32"> Login</p>
@@ -44,11 +40,11 @@ const Welcome=(props)=>{
            )}
            
            <div className="grid sm:grid-cols-3 grid-cols-2 w-full mt-10">
-            <div className={`rounded-tl-2xl  ${companyCommonStyles}`}>Reliability</div>
+            <div className={`rounded-tl-2xl  ${companyCommonStyles}`}>Uniswap</div>
            <div className={companyCommonStyles}>Security</div>
            <div className={`sm:rounded-tr-2xl ${companyCommonStyles}`}>Ethereum</div>
            <div className={`sm:rounded-bl-2xl ${companyCommonStyles}`}>Web 3.0</div>
-           <div className={companyCommonStyles}>Low Fees</div>
+           <div className={companyCommonStyles}>Flexible</div>
            <div className={`rounded-br-2xl ${companyCommonStyles}`}>Blockchain</div>
          </div>
 

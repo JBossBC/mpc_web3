@@ -1,5 +1,5 @@
 import React,{ useContext, useEffect, useState } from 'react'
-import {Modal,Form,Checkbox,Button,Input,Row,Col} from "antd"
+import {Modal,Form,Checkbox,Button,Input,Row,Col,Spin} from "antd"
 import axios from 'axios'
 import {BackendURL, BosConfig}  from "../App";
 import {ForgetView} from "./";
@@ -8,10 +8,11 @@ import {generateRandomString} from "../utils/random";
 //-------------components-----------------
 const Login=(props)=>{
     const baseURL=useContext(BackendURL);
-    const [captchaData,setCaptchaData]=useState(null)
+    const [captchaData,setCaptchaData]=useState(null);
     const {loginView,setLoginView,userInfo,setUserInfo,setIsLogin,setRegisterView,setEOAInfo,EOAInfo} =props
     const [remenberUserInfo,setRemenberUserInfo]=useState(true);
     const [forgetSecretView,setForgetSecretView]=useState(false);
+    const [isLogining,setIsLogining]=useState(false);
     const [form] =Form.useForm();
     function freshData() {
       setUserInfo((pre)=>({...pre,key:generateRandomString(Math.random()*15)}))
@@ -36,6 +37,7 @@ const Login=(props)=>{
     },[loginView])
 
     const loginUser=async ()=>{
+      setIsLogining(true);
       let end=false;
       let [userPk,serverPk]=[userInfo.secretFragment,""]
       //login
@@ -57,6 +59,7 @@ const Login=(props)=>{
             setUserInfo((pre)=>({...pre,username:"",password:"",secretFragment:""}));
           }
           setLoginView(false);
+           setIsLogining(false);
           return;
          }
          // 拿取服务器私钥片段
@@ -88,8 +91,8 @@ const Login=(props)=>{
       }
     return(
         <>
-        <BosConfig.Provider>
         <Modal title="登录"  onCancel={()=>{setLoginView(false)}}  open={loginView} footer={null}>
+    <Spin spinning={isLogining}>
     <Form form={form}
     name="login"
     labelCol={{ span: 8 }}
@@ -129,7 +132,7 @@ const Login=(props)=>{
               noStyle
               rules={[{ required: true, message: '请输入验证码' }]}
             >
-              <Input />
+              <Input value={userInfo.verifyCode} onChange={(input)=>{setUserInfo((preUser)=>({...preUser,verifyCode:input.target.value}))}} />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -186,9 +189,9 @@ const Login=(props)=>{
         </div>
       </Form.Item>
   </Form>
+  </Spin>
     </Modal>
     {forgetSecretView&&(<ForgetView setEOAInfo={setEOAInfo} EOAInfo={EOAInfo} setUserInfo={setUserInfo} userInfo={userInfo} forgetSecretView={forgetSecretView}  setForgetSecretView={setForgetSecretView}></ForgetView>)}
-    </BosConfig.Provider>
     </>
     )
 }

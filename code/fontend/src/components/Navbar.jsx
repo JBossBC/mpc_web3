@@ -3,33 +3,39 @@ import {HiMenuAlt4} from "react-icons/hi";
 import {AiOutlineClose}from "react-icons/ai";
 // import {LoginModal} from "../App.jsx";
 import logo from "../images/logo.png";
+import {Popover,Dropdown,Avatar,Button, Menu} from "antd";
+import { DownOutlined} from '@ant-design/icons';
 
 
-const NavBarItem =({title,classprops})=>(
-    <li className={`mx-4 cursor-pointer ${classprops}`}>{title}</li>
-);
+const Navbar =(props)=>{
 
-const Navbar =()=>{
+    const {isLogin,userInfo,setIsLogin}=props;
     // console.log(props);
     // const {userModalView} =props;
     const [toggleMenu,setToggleMenu]=React.useState(false);
     // const setLoginView=useContext(LoginModal);
     // const [loginState,setLoginState]=useState(false);
+    const userInfoContent =(
+        <Menu>
+            <Menu.Item>
+                
+            </Menu.Item>
+            <Menu.Item>
+                <Button onClick={()=>{setIsLogin(false)}}>退出登录</Button>
+            </Menu.Item>
+        </Menu> 
+    )
     return(
         <nav className="w-full flex md:justify-center justify-between items-center p-4">
             <div className="md:flex-[0.5] flex-initial justify-center items-center">
                 <img src={logo} alt="logo" className="w-32 cursor-pointer"/>
             </div>
-            {/* <ul className="text-white md:flex hidden list-none flex-row justify-between items-center flex-initial"> */}
-               {/* {["Market","Exchange","Tutorials","Wallets"].map((item,index)=>(
-                <NavBarItem key={item+index} title={item} />
-               ))} */}
-               {/* {loginState?<li><div className="flex items-center justify-center flex-shrink-0 h-8 overflow-hidden rounded-full basis-8 ml-2"><img className=" w-8 h-8" src="../images/user.jpg"/></div></li>:
-               <li className="bg-[#2952e3] py-2 px-7 mx-4 rounded-full cursor-pointer hover:bg-[#2546bd]" onClick={()=>{userModalView(true)}}>
-                Login
-               </li>
-}
-            </ul> */}
+            {isLogin? 
+               <Dropdown overlay={userInfoContent}>
+                <Avatar style={{ backgroundColor: '#00a2ae', verticalAlign: 'middle' }} size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 80 }}>
+        {userInfo.username}
+      </Avatar>
+      </Dropdown>:<></>}
             <div className="flex relative">
              {!toggleMenu &&(<HiMenuAlt4 fontSize={28} className="text-white md:hidden cursor-pointer" onClick={()=>setToggleMenu(true)} />)}
              {!toggleMenu &&(<AiOutlineClose fontSize={28} className="text-white md:hidden cursor-pointer " onClick={()=>setToggleMenu(false)} />)}

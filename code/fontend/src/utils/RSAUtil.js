@@ -1,4 +1,4 @@
-import { base64 } from "ethers/lib/utils";
+
 
 // 生成 RSA 密钥对
 export const generateRSAKeyPair=async ()=> {
@@ -16,8 +16,6 @@ export const generateRSAKeyPair=async ()=> {
   
   // 使用公钥加密数据
   export const encryptWithRSA=async (publicKey, data)=> {
-    const buffer = JSON.stringify(data);
-const base64 = btoa(buffer);
     let result;
     const algorithm = {
       name: 'RSA-OAEP',
@@ -26,22 +24,36 @@ const base64 = btoa(buffer);
    await crypto.subtle.encrypt(
       algorithm,
       publicKey,
-      new TextEncoder().encode(base64)
+      new TextEncoder().encode(data)
     ).then(data=>{
       result=data;
     });
-    return result;
+    return btoa(String.fromCharCode(...new Uint8Array(result)));;
   }
   
   // 使用私钥解密数据
  export const decryptWithRSA=async (privateKey, encryptedData)=>{
   let result;
+  console.log(privateKey);
+  console.log(atob(privateKey));
+  await crypto.subtle.importKey(
+    'pkcs8',
+    new Uint8Array(atob(privateKey)),
+    {
+      name: 'RSA-OAEP',
+      hash: 'SHA-256'
+    },
+    true,
+    ['decrypt']
+  ).then(async (privateK)=>{
     await crypto.subtle.decrypt(
       { name: 'RSA-OAEP' },
-      privateKey,
-      encryptedData
+      privateK,
+      encryptedData,
     ).then(data=>{
+      console.log(data);
       result=data
     });
+  })
     return new TextDecoder().decode(result);
   }

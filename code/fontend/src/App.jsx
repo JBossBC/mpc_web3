@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Modal,Spin } from "antd";
+import { Modal } from "antd";
 import './App.css'
 import { Navbar, Welcome, Footer, Services, Transactions, Login, Register, Loader } from './components'
 import axios from "axios";
@@ -23,9 +23,22 @@ const App = () => {
   const [registerView, setRegisterView] = useState(false);
   const [EOAInfo, setEOAInfo] = useState({ privateKey: "", wallet: null });
   const [loginView, setLoginView] = useState(false);
-  const [userInfo, setUserInfo] = useState({key:"", username: "", password: "", publicKey: "", privatekey: "", address: "", secretFragment: "" });
+  const [userInfo, setUserInfo] = useState({key:"", username: "",verifyCode:"", password: "", publicKey: "", privatekey: "", secretFragment: "" });
   const [isLogin, setIsLogin] = useState(false);
   const [serverPK, setServerPK] = useState(null);
+  useEffect(()=>{
+    if(isLogin){
+    if (loginView){
+      setLoginView(false);
+    }
+    if (registerView){
+      setRegisterView(false);
+    }
+  }else{
+    setUserInfo({key:"", username: "",verifyCode:"", password: "", publicKey: "", privatekey: "", secretFragment: ""})
+    setEOAInfo((pre)=>({...pre,privateKey:"",wallet:null}))
+  }
+  },[isLogin])
    function getServerpk() {
     let result=false;
     //初始化服务器公钥
@@ -64,19 +77,20 @@ const App = () => {
   }
   useEffect(()=>{
     getServerpk();
-    console.log(init);
   },[])
   useEffect( async() => {
     if (loginView) {
       // 生成 2048 位的 RSA 密钥对
       async function createRSA() {
         const keyPair = generateRSAKeyPair();
-        let privateKey = await window.crypto.subtle.exportKey("pkcs8", (await keyPair).privateKey)
-        let publicKey = await window.crypto.subtle.exportKey("spki", (await keyPair).publicKey)
-        setUserInfo((pre) => ({ ...pre, privateKey: pemFromBinary(privateKey, 'PRIVATE KEY'), publicKey: pemFromBinary(publicKey, 'PUBLIC KEY') }));
+        let privateKey = await window.crypto.subtle.exportKey("pkcs8", (await keyPair).privateKey);
+        let publicKey = await window.crypto.subtle.exportKey("spki", (await keyPair).publicKey);
+        setUserInfo((pre) => ({ ...pre, privateKey:btoa(String.fromCharCode(...new Uint8Array(privateKey))), publicKey: btoa(String.fromCharCode(...new Uint8Array(publicKey))) }));
       }
       if (!init){
      await createRSA();
+      }else{
+        setLoginView(false);
       }
     }
   }, [loginView])
@@ -85,30 +99,30 @@ const App = () => {
       setLoginView(false);
     }
   }, [registerView])
-  // 将导出的二进制数据转换为 PEM 格式
-  function pemFromBinary(binaryData, label) {
-    const base64Data = btoa(String.fromCharCode(...new Uint8Array(binaryData)));
-    const base64Pem = base64Data.replace(/(.{64})/g, '$1\n');
-    return `-----BEGIN ${label}-----\n${base64Pem}-----END ${label}-----\n`;
-  }
+  // // 将导出的二进制数据转换为 PEM 格式
+  // function pemFromBinary(binaryData, label) {
+  //   const base64Data = btoa(String.fromCharCode(...new Uint8Array(binaryData)));
+  //   const base64Pem = base64Data.replace(/(.{64})/g, '$1\n');
+  //   return `-----BEGIN ${label}-----\n${base64Pem}-----END ${label}-----\n`;
+  // }
 
   return (
     <div className='min-h-screen'>
       <BosConfig.Provider value={{ config: config, bucket: "did-blockchain" }}>
         <BackendURL.Provider value={baseURL}>
           <div className='gradient-bg-welcome'>
-            <Navbar />
-            <Welcome init={init} getpk={getServerpk} isLogin={isLogin} userModalView={setLoginView} userModal={loginView} EOAInfo={EOAInfo} setEOAInfo={setEOAInfo} globalUser={userInfo} />
+            <Navbar setIsLogin={setIsLogin} isLogin={isLogin} userInfo={userInfo} />
+            <Welcome  init={init} getpk={getServerpk} isLogin={isLogin} userModalView={setLoginView} userModal={loginView} EOAInfo={EOAInfo} setEOAInfo={setEOAInfo} globalUser={userInfo} />
           </div>
           <Services />
           <Transactions />
           <Footer />
           {loginView ?<Login setEOAInfo={setEOAInfo} EOAInfo={EOAInfo} loginView={loginView} setIsLogin={setIsLogin} setLoginView={setLoginView} userInfo={userInfo} setUserInfo={setUserInfo} setRegisterView={setRegisterView}></Login> : <></>}
-          {registerView ? <Register serverPK={serverPK} setEOAInfo={setEOAInfo} EOAInfo={EOAInfo} registerView={registerView} setRegisterView={setRegisterView} userInfo={userInfo} setUserInfo={setUserInfo} setIsLogin={setIsLogin}></Register> : <></>}
+          {registerView ? <Register  serverPK={serverPK} setEOAInfo={setEOAInfo} EOAInfo={EOAInfo} registerView={registerView} setRegisterView={setRegisterView} userInfo={userInfo} setUserInfo={setUserInfo} setIsLogin={setIsLogin}></Register> : <></>}
         </BackendURL.Provider>
       </BosConfig.Provider>
     {/* {isLoading?<Spin></Spin>:<></>} */}
-    </div>
+    </div> 
   )
 }
 
