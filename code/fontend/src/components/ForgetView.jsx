@@ -1,5 +1,5 @@
 import { useState,useContext,useEffect } from "react";
-import {Modal,Form,Button,Input,Row,Col} from "antd";
+import {Modal,Form,Button,Input,Row,Col,Spin } from "antd";
 import {BosConfig,BackendURL} from "../App"
 import { BosClient} from "@baiducloud/sdk";
 import { RandomCreateSecret, decryptMPC } from "../utils/mpcUtil";
@@ -12,6 +12,7 @@ const ForgetView=(props)=>{
   const backend_url=useContext(BackendURL);
   const [captchaData,setCaptchaData]=useState(null);
   const [init,setInit]=useState(false);
+  const [isFind,setIsFind]=useState(false);
     const {setEOAInfo,EOAInfo,userInfo,setForgetSecretView,forgetSecretView,setUserInfo}=props;
     const [findUserInfo,setFindUserInfo]=useState({username:"",password:"",alias:"",verifyCode:"",codeKey:""});
     let bosClient = new BosClient(config.config);
@@ -38,6 +39,8 @@ const ForgetView=(props)=>{
       }
      },[])
    async function findSecret(){
+    try{
+      setIsFind(true);
        let end =false;
        let [serverPk,baiduPk]=["",""];
       let token ="";
@@ -45,7 +48,7 @@ const ForgetView=(props)=>{
         let data=response.data;
         if(!data.result){
           end=true
-          Modal.error({title:"error",content:"系统出错啦"});
+          Modal.error({title:"error",content:data.message});
           return
         }
         token=data.data;
@@ -70,7 +73,6 @@ const ForgetView=(props)=>{
         let formData=new FormData()
         formData.append("publicKey",userInfo.publicKey);
         formData.append("username",findUserInfo.username);
-        formData.append("alias",findUserInfo.alias);
 
         await axios.post(backend_url+"/getShare",formData,{
           headers:{
@@ -88,7 +90,8 @@ const ForgetView=(props)=>{
           let encryptData=data.data;
           await decryptWithRSA(userInfo.privateKey,encryptData).then((result)=>{
             serverPk=result;
-            console.log(serverPk);
+            serverPk.x=BigInt(serverPk.x);
+            serverPk.y=BigInt(serverPk.y);
           })
         }).catch((error)=>{
           console.log(error);
@@ -102,15 +105,22 @@ const ForgetView=(props)=>{
         const recoverUserSecret = RandomCreateSecret([serverPk,baiduPk]);
         recoverUserSecret.x=recoverUserSecret.x.toString();
         recoverUserSecret.y=recoverUserSecret.y.toString();
-        Modal.success({title:"恢复成功",content:(<div>
+        setIsFind(false);
+       Modal.success({title:"恢复成功",content:(<div>
            重新生成的私钥:{btoa(JSON.stringify(recoverUserSecret))}
         </div>)});
         //状态保存(目前不支持自动登录)
         // setEOAInfo((pre)=({...pre,privatekey:privateKey,wallet:new ethers.Wallet(privateKey)}))
         // setUserInfo((pre)=>({...pre,username:findUserInfo.username}))
         setForgetSecretView(false);
+    }catch(e){
+       setIsFind(false);
+       console.log(e);
+       Modal.error({title:"error",content:"系统出错啦"});
+    }
     }
     return(  <Modal title="找回密钥"  onCancel={()=>{setForgetSecretView(false)}}  open={forgetSecretView} footer={null}>
+    <Spin spinning={isFind}>
     <Form 
     name="forgetview"
     labelCol={{ span: 8 }}
@@ -124,14 +134,14 @@ const ForgetView=(props)=>{
       name="username"
       rules={[{ required: true, message: '请输入正确的用户名' }]}
     >
-      <Input value={findUserInfo.username}  onChange={(input)=>{console.log(findUserInfo.password);setFindUserInfo((preUser)=>({...preUser,username:input.target.value}))}}/>
+      <Input value={findUserInfo.username}  onChange={(input)=>{setFindUserInfo((preUser)=>({...preUser,username:input.target.value}))}}/>
     </Form.Item>
     <Form.Item
   label="Password"
   name="password"
   rules={[{ required: true, message: '请输入正确的密码' }]}
 >
-  <Input.Password value={findUserInfo.password} onChange={(input)=>{console.log(findUserInfo.password);setFindUserInfo((preUser)=>({...preUser,password:input.target.value}))}}/>
+  <Input.Password value={findUserInfo.password} onChange={(input)=>{setFindUserInfo((preUser)=>({...preUser,password:input.target.value}))}}/>
 </Form.Item>
 <Form.Item
       label="alias"
@@ -139,7 +149,7 @@ const ForgetView=(props)=>{
       
       rules={[{ required: true, message: '请输入EOA账户地址' }]}
     >
-      <Input value={findUserInfo.alias}  onChange={(input)=>{console.log(findUserInfo.alias);setFindUserInfo((preUser)=>({...preUser,alias:input.target.value}))}}/>
+      <Input value={findUserInfo.alias}  onChange={(input)=>{setFindUserInfo((preUser)=>({...preUser,alias:input.target.value}))}}/>
     </Form.Item>
     <Form.Item label="Captcha" extra="We must make sure that your are a human.">
         <Row gutter={8}>
@@ -170,6 +180,7 @@ const ForgetView=(props)=>{
         </Button>
       </Form.Item>
   </Form>
+  </Spin>
     </Modal>)
 }
 export default ForgetView;

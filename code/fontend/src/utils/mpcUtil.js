@@ -112,7 +112,7 @@ function randomEvenNotZero(maxLength){
 export function RandomCreateSecret(otherSecretFragment){
   let result ={}
   let xSet=new Set();
-  secret = decryptMPC(otherSecretFragment)
+  let secret = decryptMPC(otherSecretFragment)
   for(let i=0;i<otherSecretFragment.length;i++){
     xSet.add(otherSecretFragment[i].x);
   }

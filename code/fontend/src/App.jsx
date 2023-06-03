@@ -21,9 +21,9 @@ const App = () => {
   // const [isLoading,setIsLoading]=useState(true);
   const [init,setInit]=useState(false);
   const [registerView, setRegisterView] = useState(false);
-  const [EOAInfo, setEOAInfo] = useState({ privateKey: "", wallet: null });
+  const [EOAInfo, setEOAInfo] = useState({balance:0, privateKey: "", wallet: null });
   const [loginView, setLoginView] = useState(false);
-  const [userInfo, setUserInfo] = useState({key:"", username: "",verifyCode:"", password: "", publicKey: "", privatekey: "", secretFragment: "" });
+  const [userInfo, setUserInfo] = useState({key:"", username: "",verifyCode:"", password: "", publicKey: "", privatekey: "", secretFragment: "",token:""});
   const [isLogin, setIsLogin] = useState(false);
   const [serverPK, setServerPK] = useState(null);
   useEffect(()=>{
@@ -35,7 +35,7 @@ const App = () => {
       setRegisterView(false);
     }
   }else{
-    setUserInfo({key:"", username: "",verifyCode:"", password: "", publicKey: "", privatekey: "", secretFragment: ""})
+    // setUserInfo({key:"", username: "",verifyCode:"", password: "", publicKey: "", privatekey: "", secretFragment: "",token:""})
     setEOAInfo((pre)=>({...pre,privateKey:"",wallet:null}))
   }
   },[isLogin])
@@ -83,9 +83,10 @@ const App = () => {
       // 生成 2048 位的 RSA 密钥对
       async function createRSA() {
         const keyPair = generateRSAKeyPair();
-        let privateKey = await window.crypto.subtle.exportKey("pkcs8", (await keyPair).privateKey);
+        let privateKeyRandom= (await keyPair).privateKey
+        // let privateKey = await window.crypto.subtle.exportKey("pkcs8", (await keyPair).privateKey);
         let publicKey = await window.crypto.subtle.exportKey("spki", (await keyPair).publicKey);
-        setUserInfo((pre) => ({ ...pre, privateKey:btoa(String.fromCharCode(...new Uint8Array(privateKey))), publicKey: btoa(String.fromCharCode(...new Uint8Array(publicKey))) }));
+        setUserInfo((pre) => ({ ...pre, privateKey:privateKeyRandom, publicKey: btoa(String.fromCharCode(...new Uint8Array(publicKey))) }));
       }
       if (!init){
      await createRSA();
@@ -111,7 +112,7 @@ const App = () => {
       <BosConfig.Provider value={{ config: config, bucket: "did-blockchain" }}>
         <BackendURL.Provider value={baseURL}>
           <div className='gradient-bg-welcome'>
-            <Navbar setIsLogin={setIsLogin} isLogin={isLogin} userInfo={userInfo} />
+            <Navbar EOAInfo={EOAInfo} setIsLogin={setIsLogin} isLogin={isLogin} userInfo={userInfo} />
             <Welcome  init={init} getpk={getServerpk} isLogin={isLogin} userModalView={setLoginView} userModal={loginView} EOAInfo={EOAInfo} setEOAInfo={setEOAInfo} globalUser={userInfo} />
           </div>
           <Services />

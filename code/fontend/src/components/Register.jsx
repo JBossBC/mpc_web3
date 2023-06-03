@@ -80,7 +80,7 @@ const Register=(props)=>{
     // keep to server
     // 加密数据
 // 加密数据
-const encryptedData =await encryptWithRSA(serverPK,{x:serverSF.x.toString(),y:serverSF.y.toString()});
+const encryptedData =await encryptWithRSA(serverPK,JSON.stringify({x:serverSF.x.toString(),y:serverSF.y.toString()}));
     await axios.post(backendurl+"/create",{share:encryptedData,username:newUserInfo.username,alias:wallet.address}).then((response)=>{
       let data=response.data;
       if (data.result!=true){

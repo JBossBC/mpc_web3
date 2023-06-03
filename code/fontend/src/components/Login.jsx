@@ -5,6 +5,8 @@ import {BackendURL, BosConfig}  from "../App";
 import {ForgetView} from "./";
 import { decryptMPC } from '../utils/mpcUtil';
 import {generateRandomString} from "../utils/random";
+import { decryptWithRSA } from '../utils/RSAUtil';
+import { ethers } from 'ethers';
 //-------------components-----------------
 const Login=(props)=>{
     const baseURL=useContext(BackendURL);
@@ -15,8 +17,8 @@ const Login=(props)=>{
     const [isLogining,setIsLogining]=useState(false);
     const [form] =Form.useForm();
     function freshData() {
-      setUserInfo((pre)=>({...pre,key:generateRandomString(Math.random()*15)}))
-       axios.get(baseURL+"/getCode?key="+userInfo.key).then(response=>{
+      let tempKey=generateRandomString(Math.random()*15);
+       axios.get(baseURL+"/getCode?key="+tempKey).then(response=>{
         let data=response.data
         if (!data.result){
           Modal.error({title:"error",content:data.message});
@@ -24,8 +26,9 @@ const Login=(props)=>{
         }
         setCaptchaData(data.data);
        }).catch(error=>{
-        Modal.error({title:"error",content:"系统出错勒"})
+        Modal.error({title:"error",content:"系统出错勒"});
        })
+       setUserInfo((pre)=>({...pre,key:tempKey}));
      }
      useEffect(()=>{
       freshData()
@@ -38,16 +41,23 @@ const Login=(props)=>{
 
     const loginUser=async ()=>{
       setIsLogining(true);
+      try{
       let end=false;
       let [userPk,serverPk]=[userInfo.secretFragment,""]
+      let token ="";
+      userPk=JSON.parse(atob(userPk));
+      userPk.x=BigInt(userPk.x);
+      userPk.y=BigInt(userPk.y);
       //login
-        await axios.post(baseURL+"/login",{username:userInfo.username,password:username.password}).then((response)=>{
+        await axios.post(baseURL+"/login",{username:userInfo.username,password:userInfo.password,key:userInfo.key,verifyCode:userInfo.verifyCode}).then((response)=>{
           let data =response.data;
           if (data.result!=true){
             Modal.error({title:"error",content:data.message});
             end=true;
             return;
           }
+          setUserInfo((pre)=>({...pre,token:data.data}));
+          token=data.data;
           // 前端状态改变
          }).catch((error)=>{
            Modal.error({content:"系统正在开小差",title:"error"});
@@ -55,6 +65,7 @@ const Login=(props)=>{
            return;
          })
          if (end){
+           
           if(!remenberUserInfo){
             setUserInfo((pre)=>({...pre,username:"",password:"",secretFragment:""}));
           }
@@ -63,15 +74,27 @@ const Login=(props)=>{
           return;
          }
          // 拿取服务器私钥片段
-         await axios.post(baseURL+"/did/getShare",{publicKey:userInfo.publicKey,username:userInfo.username,alias:userInfo.alias}).then((response)=>{
+         await axios.post(baseURL+"/getShare",{publicKey:userInfo.publicKey,username:userInfo.username},{
+          headers:{
+            "Authorization":`Bearer ${token}` ,
+            'Content-Type': 'multipart/form-data',
+          }
+         }).then(async(response)=>{
           let data=response.data;
           if(!data.result){
             Modal.error({title:"error",content:data.message});
              end=true;
              return;
           }
-          serverPk=data.data;
+          let serverPKF=undefined
+          await decryptWithRSA(userInfo.privateKey,data.data).then((data)=>{
+            serverPKF=data;
+          });
+          serverPKF.x=BigInt(serverPKF.x);
+          serverPKF.y=BigInt(serverPKF.y);
+          serverPk=serverPKF;
         }).catch((error)=>{
+          console.log(error);
           Modal.error({title:"error",content:"系统出错啦"});
           end=true;
           return;
@@ -81,14 +104,20 @@ const Login=(props)=>{
             setUserInfo((pre)=>({...pre,username:"",password:""}))
           }
           setLoginView(false);
+          setIsLogining(false);
           return;
          }
          //获得私钥
          let privateKey=decryptMPC([userPk,serverPk]);
-         setEOAInfo((pre)=({...pre,privatekey:privateKey,wallet:new ethers.Wallet(privateKey)}))
+         setEOAInfo((pre)=>({...pre,privatekey:privateKey,wallet:new ethers.Wallet(privateKey)}))
          setLoginView(false); 
          setIsLogin(true);
+         setIsLogining(false);
+      }catch(e){
+         Modal.error({title:"error",content:"系统出错啦"});
+         setIsLogining(false);
       }
+    }
     return(
         <>
         <Modal title="登录"  onCancel={()=>{setLoginView(false)}}  open={loginView} footer={null}>
@@ -150,7 +179,7 @@ const Login=(props)=>{
       tooltip="自动生成公钥,保证传输过程中的安全"
       rules={[{ required: true,message:""}]}
     >
-      <Input disabled={true} placeholder={userInfo.publicKey} value={(input)=>{setUserInfo((preUser)=>({...preUser,publicKey:input}))}}/>
+      <Input disabled={true} placeholder={"系统自动生成"} />
     </Form.Item>
     <Form.Item
       label="privateKey"
@@ -158,7 +187,7 @@ const Login=(props)=>{
       tooltip="自动生成私钥，保证传输过程中的安全"
       rules={[{ required: true,message:""}]}
     >
-      <Input disabled={true} placeholder={userInfo.privateKey} value={(input)=>{setUserInfo((preUser)=>({...preUser,privateKey:input}))}}/>
+      <Input disabled={true} placeholder={"系统自动生成"} />
     </Form.Item>
 
     <Form.Item

@@ -34,26 +34,30 @@ export const generateRSAKeyPair=async ()=> {
   // 使用私钥解密数据
  export const decryptWithRSA=async (privateKey, encryptedData)=>{
   let result;
-  console.log(privateKey);
-  console.log(atob(privateKey));
-  await crypto.subtle.importKey(
-    'pkcs8',
-    new Uint8Array(atob(privateKey)),
-    {
-      name: 'RSA-OAEP',
-      hash: 'SHA-256'
-    },
-    true,
-    ['decrypt']
-  ).then(async (privateK)=>{
+  // const privateKeyObj= await crypto.subtle.importKey('pkcs8',privateKey,{
+  //   name:"RSA-OAEP",
+  //   hash:"SHA-256",
+  // },true,['decrypt'])
+   console.log(privateKey);
+   console.log(typeof privateKey == CryptoKey);
+   const binaryStr = atob(encryptedData);
+   const arrayBuffer = new Uint8Array(binaryStr.length);
+
+for (let i = 0; i < binaryStr.length; i++) {
+  arrayBuffer[i] = binaryStr.charCodeAt(i);
+}
     await crypto.subtle.decrypt(
       { name: 'RSA-OAEP' },
-      privateK,
-      encryptedData,
+      privateKey,
+      arrayBuffer
     ).then(data=>{
       console.log(data);
       result=data
     });
-  })
-    return new TextDecoder().decode(result);
+    console.log(result);
+const uint8Array = new Uint8Array(result);
+const textDecoder = new TextDecoder('utf-8');
+const jsonString = textDecoder.decode(uint8Array);
+const jsonObject = JSON.parse(jsonString);
+    return jsonObject;
   }

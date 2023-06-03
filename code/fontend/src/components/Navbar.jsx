@@ -3,13 +3,13 @@ import {HiMenuAlt4} from "react-icons/hi";
 import {AiOutlineClose}from "react-icons/ai";
 // import {LoginModal} from "../App.jsx";
 import logo from "../images/logo.png";
-import {Popover,Dropdown,Avatar,Button, Menu} from "antd";
+import {Dropdown,Avatar,Button, Menu,Descriptions} from "antd";
 import { DownOutlined} from '@ant-design/icons';
 
 
 const Navbar =(props)=>{
 
-    const {isLogin,userInfo,setIsLogin}=props;
+    const {isLogin,userInfo,setIsLogin,EOAInfo}=props;
     // console.log(props);
     // const {userModalView} =props;
     const [toggleMenu,setToggleMenu]=React.useState(false);
@@ -18,10 +18,17 @@ const Navbar =(props)=>{
     const userInfoContent =(
         <Menu>
             <Menu.Item>
-                
+                <Descriptions bordered size="small" column={1}>
+                    <Descriptions.Item label="地址">
+                       {EOAInfo.wallet!=null&&EOAInfo.wallet.address}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="余额">
+                        {EOAInfo.balance}
+                    </Descriptions.Item>
+                </Descriptions>
             </Menu.Item>
             <Menu.Item>
-                <Button onClick={()=>{setIsLogin(false)}}>退出登录</Button>
+                <Button className=" w-full cursor-pointer" onClick={()=>{setIsLogin(false)}}>退出登录</Button>
             </Menu.Item>
         </Menu> 
     )
