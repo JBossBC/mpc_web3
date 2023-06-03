@@ -18,8 +18,7 @@ public interface ShareService {
      * 获得分享
      * @param publicKey
      * @param username
-     * @param alias
      * @return
      */
-    String getShare(String publicKey,String username,String alias) throws Exception;
+    String getShare(String publicKey,String username) throws Exception;
 }
