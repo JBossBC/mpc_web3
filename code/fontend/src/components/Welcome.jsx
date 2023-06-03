@@ -4,7 +4,7 @@ import { SiEthereum } from "react-icons/si";
 import { BsInfoCircle } from "react-icons/bs";
 import { shortenAddress } from "../utils/shortenAddress";
 import { Loader } from ".";
-import { Tabs, Alert, Spin, Col, Divider, Row } from "antd";
+import { Tabs, Alert, Spin, Col, Divider, Row,Button } from "antd";
 import { ethers } from "ethers"
 import Modal from 'react-modal';
 // import NodeRSA from 'node-rsa';
@@ -24,6 +24,8 @@ const style = {
 
 
 const Welcome = (props) => {
+
+ 
 
   const [ethAmount, setEthAmount] = useState(0);
   const [minTokens, setMinTokens] = useState(0);
@@ -48,13 +50,12 @@ const Welcome = (props) => {
     <input placeholder={placeholder} name={name} type={type} step="0.0001" value={value} onChange={onchange} className="my-2 w-full rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism" />
   )
 
-  const onChange = (key) => {
-    console.log(key);
-  };
 
 
   const { userModalView, isLogin, EOAInfo, setEOAInfo, globalUser, userModal } = props;
   console.log("userInfo:", globalUser)
+
+ 
   // const globalUser=useContext(loginInfoForUser);
   const handleSumbit = (e) => {
     const { addressTo, amount, keyword, message } = formData;
@@ -213,17 +214,25 @@ const Welcome = (props) => {
     // }
   }
 
+  // EOAInfo: wallet
   async function balanceOf(){
     const apiKey = 'VCZ4LuOT-6fu55GygaYXqrOXNqtXOFVH';
     const provider = new ethers.providers.AlchemyProvider('goerli', apiKey);
-    const balance = await provider.getBalance(EOAInfo);
+    const balance = await provider.getBalance(EOAInfo.wallet.address);
+    setEOAInfo((pre)=>({...pre,balance:ethers.utils.formatEther(balance)+'ETH'}));
   }
+useEffect(()=>{ 
+  if(EOAInfo.wallet!=undefined||EOAInfo.wallet!=null){
+    console.log(EOAInfo.wallet.address)
+     balanceOf();
+  }
+},[EOAInfo.wallet])
 
   async function ERC20_balanceOf(contractAddress){
     const apiKey = 'VCZ4LuOT-6fu55GygaYXqrOXNqtXOFVH';
     const provider = new ethers.providers.AlchemyProvider('goerli', apiKey);
     const abi=[]
-    const contract = new ethers.Contract(contractAddress,abi, provider);
+    const contract = new ethers.Contract(contractAddress,abi,provider);
     const balance = await contract.balanceOf(EOAInfo);
   }
 
@@ -233,12 +242,12 @@ const Welcome = (props) => {
       label: <span style={{ fontSize: '14px', color: '#3d4f7c', fontWeight: 'bold' }}>BuyToken</span>,
       children: <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center blue-glassmorphism">
         {/* <input placeholder="Amount(ETH)" name="Amount(ETH)" type="number" value={ethAmount} step="0.0001"   className="my-2 w-full rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism"  /> */}
-        <Inpput placeholder="Amount(ETH)" name="Amount(ETH)" type="number" value={ethAmount} onchange={e => setEthAmount(e.target.value)} />
+        <Inpput placeholder="Amount(ETH)" name="Amount(ETH)" type="number" value={ethAmount} onChange={e => setEthAmount(e.target.value)} />
         <Inpput placeholder="minAmount(Token)" name="minAmount(Token)" type="number" value={minTokens} />
         <div className="h-[1px] w-full bg-gray-400 my-2" />
         <button onClick={openSwapCheckModal}>TEST SEND</button>
         {!isLogin ?
-          <Loader /> : (<button type="button" onClick={handleSumbit} className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] hover:bg-[#3d4f7c] rounded-full cursor-pointer">
+          <Loader /> : (<button type="button" onClick={openSwapCheckModal} className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] hover:bg-[#3d4f7c] rounded-full cursor-pointer">
             Send now
           </button>)}
       </div>,
@@ -270,7 +279,7 @@ const Welcome = (props) => {
             Explore the crypto world. Buy and sell cryptocurrencies easily.
 
           </p>
-          {!userModal && (
+          {!isLogin && (
             <button type="button" onClick={() => { userModalView(true) }} className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]">
               <AiFillPayCircle className="text-white mr-2" />
               <p className="text-white text-base font-semibold w-32"> Login</p>
@@ -279,11 +288,11 @@ const Welcome = (props) => {
 
 
           <div className="grid sm:grid-cols-3 grid-cols-2 w-full mt-10">
-            <div className={`rounded-tl-2xl  ${companyCommonStyles}`}>Reliability</div>
+            <div className={`rounded-tl-2xl  ${companyCommonStyles}`}>Uniswap</div>
             <div className={companyCommonStyles}>Security</div>
             <div className={`sm:rounded-tr-2xl ${companyCommonStyles}`}>Ethereum</div>
             <div className={`sm:rounded-bl-2xl ${companyCommonStyles}`}>Web 3.0</div>
-            <div className={companyCommonStyles}>Low Fees</div>
+            <div className={companyCommonStyles}>Flexible</div>
             <div className={`rounded-br-2xl ${companyCommonStyles}`}>Blockchain</div>
           </div>
 
@@ -339,12 +348,15 @@ const Welcome = (props) => {
                 <Col className="gutter-row" span={8} style={{ display: 'flex', alignItems: 'center',background: '#00a0e9' }}>
                 <div style={style}>{ethAmount}</div>
                 <div style={{fontSize:'20px',fontWeight: 'bold'}}>UNI</div>
-    
+
                 </Col>
              
               </Row>
             </>
-
+            <div className="pl-10 absolute bottom-5 w-4/5  flex justify-center items-between">
+               <Button >确认兑换</Button>
+            </div>
+            
           </Modal>
 
           <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)}
@@ -369,7 +381,7 @@ const Welcome = (props) => {
             </div>
           </Modal>
 
-          <Tabs defaultActiveKey="1" size="lg" type="card" items={items} onChange={onChange} />
+          <Tabs defaultActiveKey="1" size="lg" type="card" items={items}  />
 
         </div>
       </div>
