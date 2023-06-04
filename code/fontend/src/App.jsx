@@ -17,9 +17,9 @@ const web3Interface = new ethers.providers.JsonRpcProvider("https://eth-goerli.g
 
 export const Web3Provider = React.createContext(web3Interface);
 
-const web3Map =new Map([[ 'eth',"0x0000000000000000000000000000000000000000"],
-[ 'weth',"0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"],
-[  'uni','0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc']])
+const web3Map =new Map([[ 'ETH',"0x0000000000000000000000000000000000000000"],
+[ 'WETH',"0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"],
+[  'UNI','0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc']])
 
 export const tokenAddress =React.createContext(web3Map);
 

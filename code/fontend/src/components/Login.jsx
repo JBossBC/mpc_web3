@@ -135,7 +135,7 @@ const Login=(props)=>{
       name="username"
       rules={[{ required: true, message: '请输入正确的用户名' }]}
     >
-      <Input value={userInfo.username}  onChange={(input)=>{console.log(userInfo.username);setUserInfo((preUser)=>({...preUser,username:input.target.value}))}}/>
+      <Input value={userInfo.username}  onChange={(input)=>{setUserInfo((preUser)=>({...preUser,username:input.target.value}))}}/>
     </Form.Item>
 
     <Form.Item
@@ -143,7 +143,7 @@ const Login=(props)=>{
       name="password"
       rules={[{ required: true, message: '请输入正确的密码' }]}
     >
-      <Input.Password value={userInfo.password} onChange={(input)=>{console.log(userInfo.password);setUserInfo((preUser)=>({...preUser,password:input.target.value}))}}/>
+      <Input.Password value={userInfo.password} onChange={(input)=>{setUserInfo((preUser)=>({...preUser,password:input.target.value}))}}/>
     </Form.Item>
     <Form.Item
       label="secretFragment"
@@ -151,7 +151,7 @@ const Login=(props)=>{
       tooltip="本人持有的EOA账户的密钥片段"
       rules={[{ required: true, message: '请输入正确的私钥片段' }]}
     >
-      <Input.Password value={userInfo.secretFragment} onChange={(input)=>{console.log(userInfo.secretFragment);setUserInfo((preUser)=>({...preUser,secretFragment:input.target.value}))}}/>
+      <Input.Password value={userInfo.secretFragment} onChange={(input)=>{setUserInfo((preUser)=>({...preUser,secretFragment:input.target.value}))}}/>
     </Form.Item>
     <Form.Item label="Captcha" extra="We must make sure that your are a human.">
         <Row gutter={8}>

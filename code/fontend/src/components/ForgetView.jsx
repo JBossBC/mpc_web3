@@ -31,7 +31,6 @@ const ForgetView=(props)=>{
         return;
        })
        setFindUserInfo((pre)=>({...pre,codeKey:newKey}))
-       console.log("key"+findUserInfo.codeKey);
      }
      useEffect(()=>{
       if (!init){

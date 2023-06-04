@@ -1,28 +1,41 @@
-import React,{useContext} from "react";
+import React,{useContext, useRef, useState} from "react";
 import { AiFillPayCircle } from "react-icons/ai";
 import {SiEthereum} from "react-icons/si";
 import {BsInfoCircle} from "react-icons/bs";
 import {shortenAddress} from "../utils/shortenAddress";
-import {Loader} from ".";
-import {Modal} from "antd";
+import {Loader,Interact} from ".";
+import {Modal,Select,Spin,Input} from "antd";
+import { tokenAddress } from "../App";
 // import NodeRSA from 'node-rsa';
 
 const companyCommonStyles = "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
 
 
-const Input =({placeholder,name,type,value,handlechange})=>(
-    <input placeholder={placeholder} type={type} step="0.0001" value={value} onChange={(e)=>handlechange(e,name)} className="my-2 w-full rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism"  />
-)
+// const Input =({placeholder,name,type,value,handlechange})=>(
+//     <input placeholder={placeholder} type={type} step="0.0001" value={value} onChange={(e)=>handlechange(e,name)} className="my-2 w-full rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism"  />
+// )
 const Welcome=(props)=>{
+  const tokens =useContext(tokenAddress);
+  const tokensName =Array.from(tokens.keys()).map(target=>({label:target,value:target}));
   const {userModalView,isLogin,init,getpk,EOAInfo,setEOAInfo,globalUser,userModal} =props;
+  const [sendTransactioning,setSendTransactioning]=useState(false);
+  const [isInteract,setIsInteract]=useState(false);
+  const [formData,setFormData]=useState({discordToken:"",amount:"",soldToken:"",})
   // const globalUser=useContext(loginInfoForUser);
-  const handleSumbit=(e)=>{
-    const {addressTo,amount,keyword,message}=formData;
+  const handleSumbit=async (e)=>{
+    setSendTransactioning(true);
+    const {soldToken,amount,desiredToken}=formData;
     e.preventDefault();
-    if(!addressTo||!amount||!keyword||!message)return;
-    sendTransaction();
+    if(soldToken==""||desiredToken==""||amount<=0){
+      Modal.warning({title:"warning",content:"请输入合理的参数"});
+      setSendTransactioning(false);
+      return;
+    }
+    setIsInteract(true);
+    setSendTransactioning(false);
   }
   return(
+    <>
     <div className="flex w-full justify-center items-center">
        <div className="flex mf:flex-row flex-col items-start justify-between md:p-20 py-12 px-4">
          <div className="flex flex-1 justify-start items-start flex-col mf:mr-10">
@@ -68,20 +81,31 @@ const Welcome=(props)=>{
           </div>
          </div>
      </div>
+     <Spin spinning={sendTransactioning} tip="Loading">
      <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center blue-glassmorphism">
-      <Input placeholder="Address To" name="addressTo" type="text" />
-      <Input placeholder="Amount(ETH)" name="amount" type="number"  />
-      <Input placeholder="Keyword(Gif)" name="keyword" type="text" />
-      <Input placeholder="Enter Message" name="message" type="text"  />
+      <Select  style={{
+        width: 300,
+        marginBottom:10
+      }}  className="my-2 w-full rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism"  onChange={(e)=>{setFormData((pre)=>({...pre,soldToken:e}))}}  options={isLogin?tokensName:null}   defaultValue="售出的token类型" />
+      <Input  className="m-2 rounded-md p-2 outline-none   border-none text-sm white-glassmorphism"  style={{width:280,marginBottom:10,marginTop:10}} onChange={(e)=>{setFormData((pre)=>({...pre,amount:e.target.value}))}} bordered  placeholder="卖出的数量" name="amount" type="number"  />
+      <Select  style={{
+        width: 300,
+        marginTop:10,
+      }}  className="my-2 w-full rounded-sm p-2 outline-none bg-transparent text-white border-none text-sm white-glassmorphism"  onChange={(e)=>{setFormData((pre)=>({...pre,discordToken:e}))}} options={isLogin?tokensName:null}  defaultValue="期待的token类型" name="desiredToken" />
+      {/* <Input placeholder="Enter Message" name="message" type="text"/> */}
       <div className="h-[1px] w-full bg-gray-400 my-2" />
       {!isLogin?
       <Loader/>:(<button type="button" onClick={handleSumbit} className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] hover:bg-[#3d4f7c] rounded-full cursor-pointer">
-        Send now
+        查看详情
       </button>)}
+      
      </div>
+     </Spin>
     </div>
     </div>
     </div>
+    {isInteract?<Interact isInteract={isInteract} setIsInteract={setIsInteract} EOAInfo={EOAInfo} FromToken={formData.soldToken} ToToken={formData.discordToken} amount={formData.amount}/>:<></>}
+    </>
   )
 }
 
