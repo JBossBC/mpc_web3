@@ -7,4 +7,4 @@ export {default as Transactions} from "./Transactions";
 export {default as Login} from "./Login";
 export {default as Register} from "./Register";
 export {default as ForgetView} from "./ForgetView";
-export {defualt as Interact} from './Interact';
+export {default as Interact} from './Interact';
