@@ -1,48 +1,63 @@
-import React,{useContext,useState} from "react";
+import React,{useContext,useEffect,useState} from "react";
 import {HiMenuAlt4} from "react-icons/hi";
 import {AiOutlineClose}from "react-icons/ai";
 // import {LoginModal} from "../App.jsx";
 import logo from "../images/logo.png";
-import {Dropdown,Avatar,Button, Menu,Descriptions} from "antd";
-import { DownOutlined} from '@ant-design/icons';
+import {Avatar,Button,Collapse,Descriptions,Drawer, Modal} from "antd";
+import { Web3Provider, tokenAddress } from "../App";
+import { BigNumber, ethers } from "ethers";
+import  baseERC20 from "../ABI/baseERC20ABI.json";
 
 
 const Navbar =(props)=>{
-
-    const {isLogin,userInfo,setIsLogin,EOAInfo}=props;
+    const addresses = useContext(tokenAddress);
+    const ethProvider=useContext(Web3Provider);
+    const {balancesChange,setBalancesChange,isLogin,userInfo,setIsLogin,EOAInfo}=props;
     // console.log(props);
     // const {userModalView} =props;
     const [toggleMenu,setToggleMenu]=React.useState(false);
+    const [DrawerView,setDrawerView]=useState(false);
+    const [balancesView,setBalancesView]=useState(false);
     // const setLoginView=useContext(LoginModal);
     // const [loginState,setLoginState]=useState(false);
-    const userInfoContent =(
-        <Menu>
-            <Menu.Item>
-                <Descriptions bordered size="small" column={1}>
-                    <Descriptions.Item label="地址">
-                       {EOAInfo.wallet!=null&&EOAInfo.wallet.address}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="余额">
-                        {EOAInfo.balance}
-                    </Descriptions.Item>
-                </Descriptions>
-            </Menu.Item>
-            <Menu.Item>
-                <Button className=" w-full cursor-pointer" onClick={()=>{setIsLogin(false)}}>退出登录</Button>
-            </Menu.Item>
-        </Menu> 
-    )
+    const [balances,setBalances]=useState(new Map());
+    useEffect(async()=>{
+        if (balancesChange){
+         addresses.forEach(async(value,key)=>{
+            let balance =await getBalance(value);
+             setBalances((pre)=>(pre.set(key,balance)))
+        })
+             setBalancesView(true);
+
+    }
+    },[balancesChange])
+    async function getBalance(src){
+        try{
+        if (src == '0x0000000000000000000000000000000000000000'){
+           let eth= await ethProvider.getBalance(EOAInfo.wallet.address);
+           return ethers.utils.formatEther(eth)+"ETH"
+        }
+        let contract= new ethers.Contract(src,baseERC20,ethProvider);
+        let tokenNumber=""; 
+        await contract.balanceOf(EOAInfo.wallet.address).then((data)=>{
+            tokenNumber=data.toString();
+        });
+        return tokenNumber;
+    }catch(e){
+        Modal.warning({title:"warning",content:"获取"+key+"余额失败"});
+    }
+    }
+
     return(
+        <>
         <nav className="w-full flex md:justify-center justify-between items-center p-4">
             <div className="md:flex-[0.5] flex-initial justify-center items-center">
                 <img src={logo} alt="logo" className="w-32 cursor-pointer"/>
             </div>
             {isLogin? 
-               <Dropdown overlay={userInfoContent}>
-                <Avatar style={{ backgroundColor: '#00a2ae', verticalAlign: 'middle' }} size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 80 }}>
+                <Avatar onClick={()=>{setDrawerView(true);setBalancesChange(true)}} style={{ backgroundColor: '#00a2ae', verticalAlign: 'middle' }} size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 80 }}>
         {userInfo.username}
-      </Avatar>
-      </Dropdown>:<></>}
+      </Avatar>:<></>}
             <div className="flex relative">
              {!toggleMenu &&(<HiMenuAlt4 fontSize={28} className="text-white md:hidden cursor-pointer" onClick={()=>setToggleMenu(true)} />)}
              {!toggleMenu &&(<AiOutlineClose fontSize={28} className="text-white md:hidden cursor-pointer " onClick={()=>setToggleMenu(false)} />)}
@@ -55,6 +70,19 @@ const Navbar =(props)=>{
              </ul>)}
             </div>
         </nav>
+        <Drawer  open={DrawerView} onClose={()=>{setDrawerView(false)}}>
+      
+                <Descriptions bordered size="small" column={1}>
+                    <Descriptions.Item label="地址" selectable>
+                       {EOAInfo.wallet!=null&&EOAInfo.wallet.address}
+                    </Descriptions.Item>
+                            {isLogin&&balancesView&&balances.forEach((value,key)=><Descriptions.Item label={key}>{value}</Descriptions.Item>)}
+                    <Descriptions.Item>
+                    <Button className=" w-full cursor-pointer" onClick={()=>{setIsLogin(false);setDrawerView(false)}}>退出登录</Button>
+                    </Descriptions.Item>
+                </Descriptions>     
+        </Drawer>
+        </>
     )
 }
 export default Navbar;
