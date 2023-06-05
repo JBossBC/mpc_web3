@@ -4,8 +4,8 @@ import { Tabs, Alert, Spin, Col, Divider, Row, Button, message, Modal, Space } f
 import { ethers } from 'ethers';
 import { Web3Provider, tokenAddress } from "../App"
 import { ChainId, Fetcher, Route, Token, TokenAmount, Trade, TradeType, Pair, Router,Percent } from "@uniswap/sdk"
-import { useCallback } from 'react';
-import ABI from "../ABI/baseERC20ABI.json"
+
+import ABI from "../ABI/contract.json"
 
 const style = {
   padding: '8px 0',
@@ -85,11 +85,8 @@ const Interact = (props) => {
 
   async function approve() {
     const gasLimit = '300000';
-    const gasPrice = await web3Interface.getGasPrice();
-    // const gasPrice = ethers.utils.parseUnits('2', 'gwei'); 
-    console.log("gasPricestr:",gasPrice.toString())
-    console.log("gasPriceNum:",gasPrice.toNumber())
-    console.log("gasPrice:",gasPrice.toBigInt)
+    // const gasPrice = await web3Interface.getGasPrice();
+    const gasPrice = ethers.utils.parseUnits('2', 'gwei'); 
 
     const signer = getSigner();
     const approveContract_ABI = ABI[FromToken];
@@ -119,7 +116,8 @@ const Interact = (props) => {
 
   async function ETH2Token() {
     const gasLimit = '300000';
-    const gasPrice = await web3Interface.getGasPrice();
+    // const gasPrice = await web3Interface.getGasPrice();
+    const gasPrice = ethers.utils.parseUnits('2', 'gwei');
     const signer = getSigner();
 
     const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 设置20分钟的交易截止时间
@@ -144,7 +142,7 @@ const Interact = (props) => {
         {
           value: ethers.utils.parseUnits(amount, 18),
           gasLimit: gasLimit,
-          gasPrice: 5000001210,
+          gasPrice: gasPrice,
           nonce: currentNonce
         }
       );
@@ -157,6 +155,8 @@ const Interact = (props) => {
     } catch (error) {
       console.error('交易失败', error);
       Modal.error({ title: "error", content: "交易失败" });
+    }finally{
+      setLoading(false)
     }
   }
   async function Token2ETH() {
@@ -196,13 +196,16 @@ const Interact = (props) => {
     } catch (error) {
       console.error('交易失败', error);
       Modal.error({ title: "error", content: "交易失败" });
+    }finally{
+      setLoading(false)
     }
   }
 
   async function Token2Token() {
     await approve();
     const gasLimit = '300000';
-    const gasPrice = await web3Interface.getGasPrice();
+    // const gasPrice = await web3Interface.getGasPrice();
+    const gasPrice = ethers.utils.parseUnits('2', 'gwei');
     const signer = getSigner();
 
     const amountIn = ethers.utils.parseUnits(amount, 18);
@@ -235,6 +238,8 @@ const Interact = (props) => {
     } catch (error) {
       console.error('交易失败', error);
       Modal.error({ title: "error", content: "交易失败" });
+    }finally{
+      setLoading(false)
     }
   }
 
