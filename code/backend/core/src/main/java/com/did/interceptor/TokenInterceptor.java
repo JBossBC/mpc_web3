@@ -49,6 +49,7 @@ public class TokenInterceptor implements HandlerInterceptor {
                     User user = (User) redisService.get(LOGIN_USER_KEY+username);
                     if (user != null) {
                         UserHolder.saveUser(user);
+                        redisService.set(LOGIN_USER_KEY+user.getUsername(), user, LOGIN_USER_TTL);
                     }
                 } else {
                     throw new AppException("令牌已失效");
