@@ -57,7 +57,7 @@ const Navbar =(props)=>{
         let contract= new ethers.Contract(src,baseERC20,ethProvider);
         let tokenNumber=""; 
         await contract.balanceOf(EOAInfo.wallet.address).then((data)=>{
-            tokenNumber=data.toString();
+            tokenNumber=ethers.utils.formatUnits(data,18);
         });
         return tokenNumber;
     }
