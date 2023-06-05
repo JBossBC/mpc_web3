@@ -12,6 +12,7 @@
     "@ant-design/icons": "^5.1.3",
     "@baiducloud/sdk": "^1.0.0-rc.38",
     "@tailwindcss/forms": "^0.3.4",
+    "@uniswap/sdk": "^3.0.3",
     "@uniswap/widgets": "^2.51.2",
     "antd": "^5.5.0",
     "autoprefixer": "^10.4.0",

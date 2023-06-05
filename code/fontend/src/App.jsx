@@ -19,7 +19,7 @@ export const Web3Provider = React.createContext(web3Interface);
 
 const web3Map =new Map([[ 'ETH',"0x0000000000000000000000000000000000000000"],
 [ 'WETH',"0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"],
-[  'UNI','0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc']])
+[  'UNI','0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984']])
 
 export const tokenAddress =React.createContext(web3Map);
 
