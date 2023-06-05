@@ -66,8 +66,8 @@ public class UserController {
     }
 
     @PostMapping("/getShare")
-    public Result<String> getShare(@RequestParam("publicKey") String publicKey, @RequestParam("username") String username, @RequestParam("alias") String alias) throws Exception {
-        String share = shareService.getShare(publicKey, username, alias);
+    public Result<String> getShare(@RequestParam("publicKey") String publicKey, @RequestParam("username") String username) throws Exception {
+        String share = shareService.getShare(publicKey, username);
         return R.success(share);
     }
 

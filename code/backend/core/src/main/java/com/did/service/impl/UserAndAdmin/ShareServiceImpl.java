@@ -57,9 +57,9 @@ public class ShareServiceImpl implements ShareService {
     }
 
     @Override
-    public String getShare(String publicKey, String username, String alias) throws Exception {
+    public String getShare(String publicKey, String username) throws Exception {
         QueryWrapper<Shares> wrapper = new QueryWrapper<>();
-        wrapper.eq("username", username).eq("alias", alias);
+        wrapper.eq("username", username);
         Shares shares = shareMapper.selectOne(wrapper);
         if (shares == null) {
             throw new AppException("密钥不存在");
