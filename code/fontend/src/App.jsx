@@ -25,7 +25,7 @@ export const tokenAddress =React.createContext(web3Map);
 
 export const BosConfig = React.createContext({ config: config, bucket: "did-blockchain" });
 //the backend url
-let baseURL = "http://112.124.53.234:8399/did";
+let baseURL = "https://124.220.162.38/did";
 //the server public key
 export const BackendURL = React.createContext(baseURL);
 // ------------component------------------
