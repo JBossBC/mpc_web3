@@ -77,7 +77,7 @@ const Welcome=(props)=>{
               {globalUser.username==""&&shortenAddress(globalUser.username)}
             </p>
             <p className="text-white font-semibold text-lg mt-1">
-              Ethereum
+              Ethereum Goerli
             </p>
           </div>
          </div>
