@@ -35,7 +35,7 @@ const Login=(props)=>{
      },[])
     useEffect(()=>{
         if(loginView){
-            form.setFieldsValue(userInfo);
+            form.setFieldsValue(({...userInfo,publicKey:"系统自动生成",privateKey:"系统自动生成"}));
         }
     },[loginView])
 
