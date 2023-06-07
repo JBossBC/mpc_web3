@@ -13,7 +13,7 @@ const config = {
   }
 };
 
-const web3Interface = new ethers.providers.JsonRpcProvider("https://eth-goerli.g.alchemy.com/v2/-yYC5l3t9OFJcS8HlJhMzX7cQYnIQu4q");
+const web3Interface = new ethers.providers.JsonRpcProvider("https://eth-goerli.g.alchemy.com/v2/rMM4bkGeOQclfsX4YK2KaMNEzgsrQaGC");
 
 export const Web3Provider = React.createContext(web3Interface);
 
